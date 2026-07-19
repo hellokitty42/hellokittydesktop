@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RetroWrite</title>
+
+<style>
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+html,body{
+height:100%;
+background:#808080;
+font-family:"Courier New",monospace;
+overflow:hidden;
+}
+
+#app{
+display:flex;
+flex-direction:column;
+height:100vh;
+border:3px solid black;
+background:#c0c0c0;
+}
+
+/* ---------- TITLE ---------- */
+
+#titlebar{
+background:#800000;
+color:white;
+padding:8px;
+font-weight:bold;
+}
+
+/* ---------- TOOLBAR ---------- */
+
+#toolbar{
+background:#d4d0c8;
+border-bottom:2px solid #666;
+padding:6px;
+display:flex;
+gap:6px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+button{
+font-family:inherit;
+padding:4px 10px;
+cursor:pointer;
+}
+
+button:hover{
+background:white;
+}
+
+select{
+font-family:inherit;
+}
+
+/* ---------- WORKSPACE ---------- */
+
+#workspace{
+flex:1;
+overflow:auto;
+background:#777;
+padding:40px;
+display:flex;
+justify-content:center;
+}
+
+/* ---------- PAPER ---------- */
+
+#paper{
+width:850px;
+min-height:1100px;
+background:white;
+padding:70px;
+box-shadow:0 0 20px rgba(0,0,0,.5);
+outline:none;
+line-height:1.6;
+font-size:18px;
+white-space:pre-wrap;
+}
+
+/* ---------- STATUS ---------- */
+
+#status{
+height:28px;
+background:#d4d0c8;
+border-top:2px solid #666;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 10px;
+font-size:13px;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<div id="titlebar">
+RetroWrite v1.0 — Untitled Document
+</div>
+
+<div id="toolbar">
+
+<button onclick="newDoc()">New</button>
+
+<button onclick="openFile()">Open</button>
+
+<button onclick="saveFile()">Save</button>
+
+|
+
+<button onclick="format('bold')"><b>B</b></button>
+
+<button onclick="format('italic')"><i>I</i></button>
+
+<button onclick="format('underline')"><u>U</u></button>
+
+|
+
+<select onchange="setSize(this.value)">
+<option>12</option>
+<option>14</option>
+<option selected>18</option>
+<option>20</option>
+<option>24</option>
+<option>32</option>
+</select>
+
+</div>
+
+<div id="workspace">
+
+<div id="paper" contenteditable="true">
+
+<h1>Untitled Document</h1>
+
+Start typing...
+
+</div>
+
+</div>
+
+<div id="status">
+
+<div id="words">
+Words: 0
+</div>
+
+<div>
+Ready
+</div>
+
+</div>
+
+<input
+type="file"
+id="loader"
+style="display:none"
+accept=".txt"
+/>
+
+</div>
+
+<script>
+
+const paper=document.getElementById("paper");
+
+function format(cmd){
+document.execCommand(cmd,false,null);
+paper.focus();
+}
+
+function setSize(size){
+paper.style.fontSize=size+"px";
+}
+
+function newDoc(){
+
+if(confirm("Discard current document?")){
+
+paper.innerHTML="<h1>Untitled Document</h1><br>";
+
+updateStatus();
+
+}
+
+}
+
+function saveFile(){
+
+const blob=new Blob([paper.innerText],{type:"text/plain"});
+
+const a=document.createElement("a");
+
+a.href=URL.createObjectURL(blob);
+
+a.download="document.txt";
+
+a.click();
+
+URL.revokeObjectURL(a.href);
+
+}
+
+function openFile(){
+
+document.getElementById("loader").click();
+
+}
+
+document.getElementById("loader").addEventListener("change",e=>{
+
+const file=e.target.files[0];
+
+if(!file)return;
+
+const reader=new FileReader();
+
+reader.onload=()=>{
+
+paper.innerText=reader.result;
+
+updateStatus();
+
+};
+
+reader.readAsText(file);
+
+});
+
+function updateStatus(){
+
+const text=paper.innerText.trim();
+
+const count=text.length
+?text.split(/\s+/).length
+:0;
+
+document.getElementById("words").textContent=
+"Words: "+count;
+
+}
+
+paper.addEventListener("input",updateStatus);
+
+document.addEventListener("keydown",e=>{
+
+if(e.ctrlKey){
+
+switch(e.key.toLowerCase()){
+
+case "b":
+e.preventDefault();
+format("bold");
+break;
+
+case "i":
+e.preventDefault();
+format("italic");
+break;
+
+case "u":
+e.preventDefault();
+format("underline");
+break;
+
+}
+
+}
+
+});
+
+updateStatus();
+
+</script>
+
+</body>
+</html>
